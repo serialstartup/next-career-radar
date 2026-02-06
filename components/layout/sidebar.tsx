@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Home,
   FileText,
@@ -15,6 +15,7 @@ import {
   LogOut,
   Radar,
   Menu,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { logout } from "@/lib/actions/auth";
 
 const navItems = [
   {
@@ -66,6 +68,40 @@ interface SidebarProps {
     email: string;
     avatar?: string;
   };
+}
+
+function LogoutButton() {
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogout = async () => {
+    startTransition(async () => {
+      await logout();
+    });
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            disabled={isPending}
+            className="h-8 w-8 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            aria-label="Sign out"
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{isPending ? "Signing out..." : "Sign out"}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 function SidebarContent({
@@ -169,21 +205,7 @@ function SidebarContent({
             </div>
           )}
           {!collapsed && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    aria-label="Sign out"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Sign out</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <LogoutButton />
           )}
         </div>
       </div>
